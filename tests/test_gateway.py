@@ -7,7 +7,7 @@ from backend import create_app, Memory, Runtime, apply_telemetry
 
 @pytest.fixture
 def client(tmp_path):
-    with TestClient(create_app(tmp_path,True),base_url='http://127.0.0.1:8765') as c:
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1:8765') as c:
         c.headers['X-Jarvis-Token']=c.get('/session').json()['token']
         yield c
 
@@ -19,7 +19,8 @@ def test_telemetry_persists_and_deduplicates(client):
     assert client.post('/telemetry',json=item).json()['accepted']
     assert not client.post('/telemetry',json=item).json()['accepted']
     assert client.get('/state').json()['core']['layer']==1
-    assert len(client.get('/state').json()['events'])==1
+    events=client.get('/state').json()['events']
+    assert len([event for event in events if event['kind']=='telemetry'])==1
 
 @pytest.mark.parametrize('payload',[event('execute'),event(x=1001),event('drag'),event(node=-1),event(extra='execute')])
 def test_rejects_invalid_telemetry(client,payload):
@@ -31,10 +32,10 @@ def test_origin_host_token_boundary(client):
     assert client.get('/session',headers={'Host':'unrelated.example'}).status_code==403
     assert client.post('/telemetry',content='x'*17000).status_code==413
 
-def test_demo_never_fakes_ai_or_audio(client):
+def test_unconfigured_runtime_rejects_ai_and_audio(client):
     assert client.post('/message',json={'text':'Hello'}).status_code==503
     assert client.post('/audio',json={'enabled':True}).status_code==503
-    assert client.get('/state').json()['demo'] is True
+    assert client.get('/state').json()['status']=='configuration required'
 
 def test_core_mapping_is_bounded():
     assert apply_telemetry({'layer':0},event('down'))['layer']==0
@@ -63,7 +64,7 @@ def test_actual_hermes_contract_preserves_tool_history(tmp_path):
                 {'role':'assistant','content':None,'tool_calls':[{'id':'a','type':'function','function':{'name':'memory','arguments':'{}'}}]},
                 {'role':'tool','tool_call_id':'a','content':'Done'},
                 {'role':'assistant','content':'Ready, Sir.'}]}
-    rt=Runtime(tmp_path,True)
+    rt=Runtime(tmp_path)
     rt.agent=Agent()
     assert rt.turn('Hello','keyboard')=='Ready, Sir.'
     assert rt.memory.get('history')[2]['role']=='tool'

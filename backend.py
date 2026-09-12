@@ -1,6 +1,5 @@
-"""Local JARVIS gateway. Run one process: python backend.py [--demo]."""
+"""Local JARVIS Mark-85 gateway. Run one process: python backend.py."""
 from __future__ import annotations
-import argparse
 import asyncio
 import concurrent.futures
 import contextlib
@@ -300,8 +299,7 @@ class Audio:
                 auth.channel.close()
 
 class Runtime:
-    def __init__(self, data_dir, demo=False):
-        self.demo = demo
+    def __init__(self, data_dir):
         self.memory = Memory(data_dir/'events.sqlite3')
         self.session_id = self.memory.get('session_id') or str(uuid.uuid4())
         self.memory.set('session_id',self.session_id)
@@ -310,7 +308,7 @@ class Runtime:
         self.agent = None
         self.client = None
         self.history = self.memory.get('history',[])
-        self.status = 'visual demo' if demo else 'starting'
+        self.status = 'starting'
         self.audio_status = 'muted'
         self.tts_status = 'off'
         self.started = time.monotonic()
@@ -342,8 +340,6 @@ class Runtime:
             self.memory.add('error', {'message':'Transcript stored but not executed: command queue full'})
 
     def boot(self):
-        if self.demo:
-            return
         try:
             path = Path(os.environ['HERMES_AGENT_PATH']).expanduser().resolve()
             if not (path/'run_agent.py').is_file():
@@ -431,7 +427,7 @@ class Runtime:
                     tts=self.tts_status, memory=self.memory.mode, core=self.core,
                     uptime=int(time.monotonic()-self.started), queue=self.jobs.qsize(),
                     audio_dropped=self.audio.dropped, telemetry_count=self.count,
-                    events=self.memory.recent(30), demo=self.demo)
+                    events=self.memory.recent(30))
 
     async def close(self):
         self.closed = True
@@ -452,8 +448,8 @@ class Runtime:
         self.memory.close()
 
 
-def create_app(data_dir=None, demo=False):
-    rt = Runtime(Path(data_dir or ROOT/'data'),demo)
+def create_app(data_dir=None):
+    rt = Runtime(Path(data_dir or ROOT/'data'))
     @contextlib.asynccontextmanager
     async def lifespan(app):
         rt.loop = asyncio.get_running_loop()
@@ -560,8 +556,5 @@ if __name__ == '__main__':
     from dotenv import load_dotenv
     import uvicorn
     load_dotenv(ROOT/'.env')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--demo',action='store_true',help='Visual and telemetry preview without microphone/model')
-    args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    uvicorn.run(create_app(demo=args.demo),host='127.0.0.1',port=int(os.getenv('JARVIS_PORT','8765')),workers=1)
+    uvicorn.run(create_app(),host='127.0.0.1',port=int(os.getenv('JARVIS_PORT','8765')),workers=1)
