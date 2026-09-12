@@ -1,0 +1,97 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="JARVIS Mark 25: your local voice-first Hermes AI command center."><title>J.A.R.V.I.S. — Intelligence at your command</title><style>:root{color-scheme:dark;--bg:#05080e;--panel:#0a111c;--line:#1a293b;--muted:#8c9cad;--white:#e8f0fa;--blue:#53baff;--cyan:#8bdcff}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--white);font-family:Inter,Arial,sans-serif;font-size:14px}button,input,a{font:inherit}a{color:inherit;text-decoration:none}button,a,input{outline-offset:5px}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--blue)}.mono,.eyebrow{font-family:'SFMono-Regular',Consolas,monospace}.eyebrow{font-size:10px;letter-spacing:2.3px;text-transform:uppercase;color:var(--muted)}.logo{font-size:17px;letter-spacing:5px;font-weight:700;display:flex;align-items:center;gap:12px}.logo-mark{width:28px;height:28px;border:1px solid var(--blue);display:grid;place-items:center;transform:rotate(45deg);box-shadow:0 0 20px #1388dc22}.logo-mark:after{content:'';width:9px;height:9px;background:var(--blue);box-shadow:0 0 15px var(--blue)}.blue{color:var(--blue)}.muted{color:var(--muted)}.pill{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:30px;padding:8px 13px;font-size:10px;letter-spacing:1px}.dot{width:5px;height:5px;border-radius:50%;background:var(--blue);box-shadow:0 0 9px #53baff}.btn{display:inline-flex;align-items:center;justify-content:center;gap:22px;border:1px solid #344556;border-radius:5px;background:#0d1723;color:var(--white);padding:13px 20px;transition:.2s}.btn:hover{background:#182b3e;border-color:#72c7ff}.btn.primary{background:#91d4ff;color:#061321;border-color:#91d4ff;box-shadow:0 0 25px #148bdc18;font-weight:600}.btn.primary:hover{background:#c0e8ff}.core{position:relative;min-height:300px;background:radial-gradient(ellipse at center,#0079d514 0,transparent 63%)}.core:before{content:'';position:absolute;inset:22%;border:1px solid #268cca44;border-radius:50%;box-shadow:0 0 75px #1578ca22,inset 0 0 75px #1578ca22;pointer-events:none}.core.loaded:before{display:none}.core canvas{display:block;width:100%;height:100%;touch-action:none}.core-error{position:absolute;bottom:20px;left:20px;right:20px;color:#a6b9cb;font-size:12px;text-align:center}.small{font-size:12px;line-height:1.7}.tag{color:var(--blue);background:#102030;border:1px solid #214768;padding:4px 7px;border-radius:3px;font-size:9px;letter-spacing:1px}footer{border-top:1px solid var(--line);padding:22px 5%;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px}svg{display:block} @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+nav{height:88px;max-width:1360px;margin:auto;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.navlinks{display:flex;gap:35px;align-items:center;font-size:12px;color:#adb9c8}.navlinks .btn{padding:10px 15px;font-size:11px}.hero{max-width:1360px;margin:auto;min-height:670px;position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:40px 48px 65px;overflow:hidden}.hero:after{content:'';position:absolute;bottom:0;left:48px;right:48px;height:1px;background:var(--line)}.hero-copy{z-index:1;padding-top:15px}.release{margin-bottom:30px}h1{font-size:clamp(48px,5.4vw,78px);font-weight:500;line-height:1.07;letter-spacing:-4px;margin:0 0 26px}h1 span{display:block;color:#79c7ff}.hero-copy p{font-size:16px;line-height:1.8;color:#9caabd;max-width:410px;margin-bottom:30px}.hero-actions{display:flex;gap:12px;margin-bottom:34px}.local-note{display:flex;gap:9px;align-items:center;font-size:11px;color:#8698ab}.hero-visual{position:relative;height:540px;margin-left:-35px}.hero-visual .core{height:100%;width:calc(100% + 45px)}.visual-label{position:absolute;left:30px;top:30px;font-size:9px;letter-spacing:2px;color:#6495b9}.visual-label.bottom{top:auto;bottom:10px;width:100%;text-align:center;left:0}.cross{position:absolute;color:#6da2c2;font:16px monospace;right:10px;top:60px}.capabilities{max-width:1264px;margin:0 auto;padding:26px 0;display:flex;justify-content:space-between;color:#8c9bad;font-size:11px}.capabilities b{color:#d2deed;font-weight:400;margin-left:10px}.section{max-width:1264px;margin:0 auto;padding:70px 0}.section-header{display:flex;justify-content:space-between;align-items:end;margin-bottom:35px}.section-header h2{font-size:34px;letter-spacing:-1px;font-weight:500;margin:12px 0 0}.section-header p{color:var(--muted);max-width:315px;line-height:1.7}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.feature{background:linear-gradient(145deg,#0c1521,#080d15);border:1px solid var(--line);border-radius:9px;padding:30px;min-height:235px}.feature-num{font:11px monospace;color:#5f98c5}.feature h3{font-size:18px;font-weight:500;margin-top:38px}.feature p{font-size:13px;line-height:1.8;color:var(--muted)}.flow{display:grid;grid-template-columns:1.1fr 1fr;gap:70px;align-items:center;padding:35px;border:1px solid var(--line);border-radius:10px;background:#08101a}.flow h2{font-size:32px;font-weight:500;letter-spacing:-1px}.flow p{color:var(--muted);line-height:1.8}.flow ol{list-style:none;padding:0;margin:0;counter-reset:steps}.flow li{counter-increment:steps;border-bottom:1px solid var(--line);padding:20px 0;display:flex;align-items:center;gap:22px}.flow li:before{content:'0' counter(steps);font:11px monospace;color:var(--blue)}.flow li span{display:block;color:var(--muted);font-size:12px;margin-top:6px}.end-cta{display:flex;justify-content:space-between;align-items:center;padding:55px 0}.end-cta h2{font-size:30px;font-weight:500;letter-spacing:-1px}.end-cta p{color:var(--muted)}@media(min-width:1500px){.hero{min-height:740px}.hero-visual{height:620px}}@media(max-width:1000px){.section,.capabilities{margin:0 30px}.hero{padding:35px 30px;min-height:620px}nav{padding:0 30px}.hero-visual{height:430px}.hero-copy p{font-size:14px}h1{font-size:56px}.capabilities{gap:20px;flex-wrap:wrap}.features{gap:12px}.feature{padding:22px}.flow{gap:30px}}@media(max-width:650px){nav{height:75px;padding:0 22px}.logo{font-size:14px;letter-spacing:3px}.navlinks>a:not(.btn){display:none}.navlinks .btn{font-size:10px;padding:9px}.hero{grid-template-columns:1fr;padding:55px 22px 20px}.hero-copy{padding:0}h1{font-size:57px;letter-spacing:-3px}.hero-visual{height:375px;margin:0}.hero-visual .core{width:100%}.hero-actions{gap:8px}.btn{padding:13px 15px;font-size:12px}.features{grid-template-columns:1fr}.section-header{display:block}.section{padding:40px 0;margin:0 22px}.section-header h2{font-size:28px}.capabilities{margin:0 22px;display:grid;grid-template-columns:1fr 1fr;font-size:10px}.flow{grid-template-columns:1fr;padding:24px;gap:10px}.flow h2{font-size:27px}.end-cta{display:block}.end-cta .btn{margin-top:15px}footer{gap:18px;flex-wrap:wrap}}
+</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script></head><body><nav><a href="/" class="logo" aria-label="JARVIS home"><span class="logo-mark"></span>J.A.R.V.I.S.</a><div class="navlinks"><a href="#capabilities">Capabilities</a><a href="#architecture">Architecture</a><a class="btn" href="/dashboard">Open dashboard <span>↗</span></a></div></nav>
+<main><section class="hero"><div class="hero-copy"><div class="pill release"><span class="dot"></span>MARK 25 <span class="muted">/</span> THE ENDGAME FRAMEWORK</div><h1>Intelligence.<br>At your command.<span>Good morning, Sir.</span></h1><p>A voice-first interface for your own AI. Speak naturally, explore the core, and bring your ideas into focus.</p><div class="hero-actions"><a href="/dashboard" class="btn primary">Enter command center <span>↗</span></a><a href="#architecture" class="btn">Explore the system</a></div><div class="local-note"><span class="dot"></span>Local gateway. Persistent memory. Your controls.</div></div><div class="hero-visual"><div class="visual-label">NEURAL MATRIX / MK.25</div><span class="cross">+</span><div id="core" class="core"></div><div class="visual-label bottom">INTERACTIVE PARTICLE ENGINE <span class="blue">—</span> BLUE SPECTRUM</div></div></section>
+<div class="capabilities"><span>POWERED BY <b>Hermes Agent</b></span><span>VOICE INPUT <b>NVIDIA Parakeet</b></span><span>VISUAL ENGINE <b>Three.js</b></span><span>SPEECH OUTPUT <b>Local TTS</b></span></div>
+<section id="capabilities" class="section"><div class="section-header"><div><div class="eyebrow">01 / Built around you</div><h2>One interface. A connected mind.</h2></div><p>From a spoken thought to a useful response, with context that stays within reach.</p></div><div class="features"><article class="feature"><div class="feature-num">01 — VOICE</div><h3>A conversation, not a command line.</h3><p>Streaming speech recognition meets a concise British voice. Start listening when you are ready.</p></article><article class="feature"><div class="feature-num">02 — CONTEXT</div><h3>Pick up where you left off.</h3><p>A durable event history and local memory retrieval help connect today's ideas to earlier work.</p></article><article class="feature"><div class="feature-num">03 — INTERACTION</div><h3>Put your hands on the core.</h3><p>Rotate the matrix, navigate its layers, and select individual nodes to direct your attention.</p></article></div></section>
+<section id="architecture" class="section"><div class="flow"><div><div class="eyebrow">02 / Under the surface</div><h2>Designed to listen.<br>Built to act with context.</h2><p>Your local Python gateway connects the interface to Hermes. Run speech recognition locally with NVIDIA NIM, or connect the hosted NVIDIA service.</p><a href="/dashboard" class="blue small">Explore your command center ↗</a></div><ol><li><div>Listen & understand<span>Microphone → Parakeet speech recognition</span></div></li><li><div>Remember & reason<span>Telemetry + memory → Hermes agent loop</span></div></li><li><div>Respond & continue<span>Agent response → local speech playback</span></div></li></ol></div><div class="end-cta"><div><h2>Your next idea is the starting point.</h2><p>Step inside the command center.</p></div><a href="/dashboard" class="btn primary">Initialize interface ↗</a></div></section></main><footer><span>J.A.R.V.I.S. / MARK 25</span><span>PERSONAL INTELLIGENCE, THOUGHTFULLY ENGINEERED.</span><a href="https://github.com/RudraRM/Jarvis-Mark-25-Endgame">View source ↗</a></footer><script type="module">async function mountCore(host, interactive=false, emit=()=>{}) {
+ const THREE = await import('three');
+ const {OrbitControls} = await import('three/addons/controls/OrbitControls.js');
+ const scene = new THREE.Scene();
+ const camera = new THREE.PerspectiveCamera(40,1,.1,100);
+ camera.position.set(0,.3,7.8);
+ const renderer = new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+ renderer.setClearColor(0x02050b,0);
+ host.append(renderer.domElement);
+ host.classList.add('loaded');
+ renderer.domElement.setAttribute('aria-label','Blue holographic core. Drag to rotate, shift-drag a particle to select and move it.');
+ const group = new THREE.Group(); scene.add(group); group.rotation.z=.22;
+ let seed=2503;
+ const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ const positions=[], colors=[], lines=[];
+ const add=(x,y,z,brightness)=>{positions.push(x,y,z);colors.push(.12*brightness,.58*brightness,brightness);};
+ // Incomplete latitude ribbons, broken meridians, and radial signal spires.
+ for(let band=0;band<52;band++) {
+   const phi=.13+Math.PI*.91*band/51;
+   const radius=1.6+random()*.35;
+   let prev=null;
+   for(let k=0;k<170;k++) {
+     const theta=k/170*Math.PI*2;
+     const jitter=(random()-.5)*.035;
+     const r=radius+jitter+.07*Math.sin(theta*7+phi*11);
+     const p=[r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta)];
+     if(random()>.2 && Math.sin(theta*3+phi*8)>-.8) {
+       add(...p,.45+random()*.7);
+       if(prev && random()>.28) lines.push(...prev,...p);
+       if(random()>.97) {const q=p.map(v=>v*(1.08+random()*.12));lines.push(...p,...q);add(...q,1.1);}
+       prev=p;
+     } else prev=null;
+   }
+ }
+ for(let i=0;i<1000;i++) {
+   const t=random()*Math.PI*2, u=Math.acos(2*random()-1), r=.28+random()*.45;
+   add(r*Math.sin(u)*Math.cos(t),r*Math.cos(u),r*Math.sin(u)*Math.sin(t),1.1);
+ }
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+ vertexShader:'attribute vec3 color; varying vec3 vColor; void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=clamp(15.0/-mv.z,1.0,5.0);gl_Position=projectionMatrix*mv;}',
+ fragmentShader:'varying vec3 vColor;void main(){float d=length(gl_PointCoord-0.5)*2.0;if(d>1.0)discard;gl_FragColor=vec4(vColor,pow(1.0-d,1.4));}'});
+ const cloud=new THREE.Points(geo,material);group.add(cloud);
+ const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(lines,3));
+ group.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0x167bc1,transparent:true,opacity:.27,blending:THREE.AdditiveBlending})));
+ for(let ring=0;ring<4;ring++) {
+   const points=[];const r=ring<2?.48+ring*.3:2.18+(ring-2)*.13;
+   for(let i=0;i<=220;i++){const a=i/220*Math.PI*2;points.push(new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a)));}
+   const orbit=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0x2caaff,transparent:true,opacity:ring<2?.65:.16}));
+   orbit.rotation.set(.6+ring*.5,ring*.3,.2);group.add(orbit);
+ }
+ const controls=new OrbitControls(camera,renderer.domElement);
+ controls.enabled=interactive;controls.enableDamping=true;controls.enablePan=true;controls.minDistance=4.8;controls.maxDistance=11;
+ controls.autoRotate=!interactive;controls.autoRotateSpeed=.35;
+ const ray=new THREE.Raycaster();ray.params.Points.threshold=.055;
+ let dragging=null, start=null, dirty=false, lastSend=0;
+ const pointer=new THREE.Vector2(), plane=new THREE.Plane(), hit=new THREE.Vector3();
+ const screenPoint=e=>{const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);};
+ renderer.domElement.addEventListener('pointerdown',e=>{
+   if(!interactive)return;
+   start={x:e.clientX,y:e.clientY};
+   if(e.shiftKey){screenPoint(e);const target=ray.intersectObject(cloud)[0];if(target){
+     dragging=target.index;controls.enabled=false;renderer.domElement.setPointerCapture(e.pointerId);
+     plane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()),target.point);
+     document.getElementById('nodeReadout').textContent=String(dragging).padStart(4,'0');
+   }}
+ });
+ renderer.domElement.addEventListener('pointermove',e=>{
+   if(dragging!==null){screenPoint(e);if(ray.ray.intersectPlane(plane,hit)){
+     cloud.worldToLocal(hit);geo.attributes.position.setXYZ(dragging,hit.x,hit.y,hit.z);geo.attributes.position.needsUpdate=true;
+     emit({action:'dragged inside core dots',node:dragging,x:hit.x,y:hit.y,z:hit.z});
+   }} else if(start){dirty=true;if(performance.now()-lastSend>80){sendRotation(e);}}
+ });
+ function sendRotation(e){lastSend=performance.now();dirty=false;emit({action:Math.abs(e.clientX-start.x)>Math.abs(e.clientY-start.y)?'turn':'twist',x:controls.getAzimuthalAngle(),y:controls.getPolarAngle(),z:camera.position.z});}
+ const finish=e=>{if(dirty&&start&&dragging===null)sendRotation(e);dragging=null;start=null;controls.enabled=interactive;};
+ renderer.domElement.addEventListener('pointerup',finish);
+ renderer.domElement.addEventListener('pointercancel',finish);
+ renderer.domElement.addEventListener('wheel',e=>{if(interactive)emit({action:e.deltaY<0?'up':'down'});},{passive:true});
+ const resize=new ResizeObserver(()=>{const {width,height}=host.getBoundingClientRect();if(width&&height){renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();}});resize.observe(host);
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ let frame=0,disposed=false;
+ function animate(t){if(disposed)return;frame=requestAnimationFrame(animate);if(document.hidden)return;controls.autoRotate=!reduced&&!interactive;controls.update();if(!reduced){group.rotation.y+=interactive?.0008:.0015;group.scale.setScalar(1+Math.sin(t*.0008)*.008);}renderer.render(scene,camera);}
+ frame=requestAnimationFrame(animate);
+ return {reset(){controls.reset();group.rotation.set(0,0,.22);},rotate(dx){group.rotation.y+=dx;emit({action:'turn',x:group.rotation.y,y:group.rotation.x,z:group.rotation.z});},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();controls.dispose();renderer.dispose();}};
+}
+
+mountCore(document.getElementById('core')).catch(()=>{const e=document.createElement('p');e.className='core-error';e.textContent='3D visualization unavailable. Check WebGL and your network connection.';document.getElementById('core').append(e);});</script></body></html>
