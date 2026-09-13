@@ -3,7 +3,7 @@ import json
 import uuid
 from fastapi.testclient import TestClient
 import pytest
-from backend import create_app, DirectNvidiaChat, Memory, Runtime, apply_telemetry
+from backend import clean_env_value, create_app, DirectNvidiaChat, load_env_files, Memory, Runtime, apply_telemetry
 
 @pytest.fixture
 def client(tmp_path):
@@ -31,6 +31,11 @@ def test_origin_host_token_boundary(client):
     assert client.post('/telemetry',json=event(),headers={'Origin':'https://unrelated.example'}).status_code==403
     assert client.get('/session',headers={'Host':'unrelated.example'}).status_code==403
     assert client.post('/telemetry',content='x'*17000).status_code==413
+
+def test_env_helpers_accept_common_local_names(monkeypatch):
+    monkeypatch.delenv('NVIDIA_API_KEY', raising=False)
+    assert clean_env_value(' "abc123" ') == 'abc123'
+    assert '.env.example' not in load_env_files()
 
 def test_unconfigured_runtime_rejects_ai_and_audio(client):
     assert client.post('/message',json={'text':'Hello'}).status_code==503

@@ -25,7 +25,7 @@ Use Python 3.11–3.13. From the repository directory:
     python setup.py
     python backend.py
 
-Open **http://127.0.0.1:8765**. The website requires your NVIDIA key for chat; there is no demo runtime or simulated response path. On Windows, activate with `.venv\Scripts\activate`.
+Open **http://127.0.0.1:8765**. The website requires your NVIDIA key for chat; there is no demo runtime or simulated response path. The backend loads `.env`, `.env.local`, or `env.local`, in that order. On Windows, activate with `.venv\Scripts\activate`.
 
 
 Each HTML page contains its application CSS and JavaScript. Three.js and OrbitControls load from a pinned jsDelivr version, so first-page loading requires internet access. Serve through the gateway, not `file://`. This is not an offline-vendored frontend bundle.
@@ -46,7 +46,7 @@ Each HTML page contains its application CSS and JavaScript. Three.js and OrbitCo
 
        python setup.py
 
-   The hidden prompt asks for your NVIDIA API key. No secret is bundled. Existing `.env` files are preserved. This is enough for the dashboard text chatbot to use the configured NVIDIA language model.
+   The hidden prompt asks for your NVIDIA API key. No secret is bundled. Existing `.env` files are preserved. This is enough for the dashboard text chatbot to use the configured NVIDIA language model. If you make the file manually, name it `.env`, `.env.local`, or `env.local`; do not commit it.
 
    To enable full Hermes tool-loop mode and install the JARVIS skill, run setup with the Hermes checkout:
 
@@ -102,7 +102,7 @@ The command queue is in memory and is not an exactly-once durable job system. A 
 
 `data/events.sqlite3` stores event history, core state, session identity, and Hermes continuation messages. `data/` and `.env` are ignored by Git. For a private desktop setup, keep the repository and data directory under your OS user account; database contents are not encrypted by this app. Stop the app before backing up or deleting the database, including its WAL/SHM files. Hermes also stores its own memory/session data under its configured home; resetting the gateway does not erase that separate history.
 
-Runtime setup errors appear in the activity feed. A ready process does not prove the configured model or ASR service will accept the next request. Check account permissions, model availability, endpoint reachability, audio drivers, and installed voices when failures appear. Voice capture is on the Python machine, not on a remote browser device.
+Runtime setup errors appear in the activity feed. A ready process does not prove the configured model or ASR service will accept the next request. Check account permissions, model availability, endpoint reachability, audio drivers, and installed voices when failures appear. If the NVIDIA key is valid but chat fails, verify that your account has access to `JARVIS_MODEL`; you can replace it with another NVIDIA-hosted chat model ID available in your account. Voice capture is on the Python machine, not on a remote browser device.
 
 ## Verification and limits
 

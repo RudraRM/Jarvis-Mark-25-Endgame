@@ -29,6 +29,26 @@ LOG = logging.getLogger('jarvis')
 def utc():
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
+def clean_env_value(value):
+    if value is None:
+        return ''
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+        value = value[1:-1].strip()
+    return value
+
+def load_env_files():
+    try:
+        from dotenv import load_dotenv
+    except Exception:
+        return []
+    loaded = []
+    for env_name in ('.env', '.env.local', 'env.local'):
+        path = ROOT/env_name
+        if path.is_file() and load_dotenv(path, override=False):
+            loaded.append(env_name)
+    return loaded
+
 class Telemetry(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     event_id: uuid.UUID
@@ -68,7 +88,11 @@ class DirectNvidiaChat:
             temperature=float(os.getenv('JARVIS_TEMPERATURE','0.4')),
             max_tokens=int(os.getenv('JARVIS_MAX_TOKENS','900')),
         )
+        if not response.choices:
+            raise RuntimeError('NVIDIA returned no chat choices; verify model access and route')
         answer = (response.choices[0].message.content or '').strip()
+        if not answer:
+            raise RuntimeError('NVIDIA returned an empty chat response; verify model access and route')
         return {'final_response':answer,'messages':safe_history+[
             {'role':'user','content':user_message},
             {'role':'assistant','content':answer},
@@ -372,9 +396,9 @@ class Runtime:
     def boot(self):
         try:
             from openai import OpenAI
-            key = os.environ['NVIDIA_API_KEY']
+            key = clean_env_value(os.getenv('NVIDIA_API_KEY'))
             if not key:
-                raise RuntimeError('Set NVIDIA_API_KEY in .env')
+                raise RuntimeError('Set NVIDIA_API_KEY in .env, .env.local, or env.local')
             # Official OpenAI-compatible NVIDIA client; AIAgent owns tool iterations.
             self.client = OpenAI(api_key=key, base_url=os.getenv('JARVIS_LLM_BASE_URL','https://integrate.api.nvidia.com/v1'),
                                  timeout=60, max_retries=2)
@@ -451,7 +475,10 @@ class Runtime:
                 self.status = 'ready'
             except Exception as exc:
                 self.status = 'ready' if self.agent else 'configuration required'
-                self.memory.add('error',{'message':'Turn failed: '+str(exc)[:300]})
+                message = str(exc)[:500]
+                if exc.__class__.__module__.startswith('openai'):
+                    message = 'NVIDIA chat request failed: '+message
+                self.memory.add('error',{'message':'Turn failed: '+message})
                 LOG.exception('Turn failed')
             finally:
                 self.jobs.task_done()
@@ -488,6 +515,7 @@ class Runtime:
 
 
 def create_app(data_dir=None):
+    load_env_files()
     rt = Runtime(Path(data_dir or ROOT/'data'))
     @contextlib.asynccontextmanager
     async def lifespan(app):
@@ -592,8 +620,7 @@ def create_app(data_dir=None):
     return app
 
 if __name__ == '__main__':
-    from dotenv import load_dotenv
     import uvicorn
-    load_dotenv(ROOT/'.env')
+    load_env_files()
     logging.basicConfig(level=logging.INFO)
     uvicorn.run(create_app(),host='127.0.0.1',port=int(os.getenv('JARVIS_PORT','8765')),workers=1)
