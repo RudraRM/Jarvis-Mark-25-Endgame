@@ -8,12 +8,12 @@ Read **[JARVIS_IMPLEMENTATION.md](JARVIS_IMPLEMENTATION.md)** for the comprehens
 
 - `/`: landing page with animated blue core, capabilities, architecture, and dashboard entry.
 - `/dashboard`: orbit/pan/zoom, shift-drag node selection, keyboard rotation and layer controls, actual runtime states, local command entry, and activity transcript.
-- `backend.py`: FastAPI, persistent Hermes AIAgent, bounded command queue, 16 kHz mono PCM microphone capture, Parakeet Riva streaming, and a separate local TTS process.
+- `backend.py`: FastAPI, real NVIDIA chat fallback, optional persistent Hermes AIAgent, bounded command queue, 16 kHz mono PCM microphone capture, Parakeet Riva streaming, and a separate local TTS process.
 - `prompt.txt`: stable identity, telemetry/memory context, and volatile runtime state assembly.
 - `skills/jarvis/SKILL.md`: installable Hermes operating skill.
 - SQLite WAL event history with local sentence-transformers embeddings, semantic retrieval, and an explicit lexical fallback. Hermes keeps its own memory and tool history too.
 
-**NVIDIA API correction:** the documented Parakeet 1.1B hosted interface is Riva gRPC, not an OpenAI audio-transcription endpoint. The backend uses `from openai import OpenAI` for the NVIDIA-compatible LLM client configuration, then embeds the actual Hermes AIAgent for model requests and tool iteration. It does not send audio to an invented `/audio/transcriptions` URL. See [NVIDIA's API instructions](https://build.nvidia.com/nvidia/parakeet-1_1b-rnnt-multilingual-asr/api).
+**NVIDIA API correction:** the documented Parakeet 1.1B hosted interface is Riva gRPC, not an OpenAI audio-transcription endpoint. The backend uses `from openai import OpenAI` for the NVIDIA-compatible LLM client configuration. If `HERMES_AGENT_PATH` is configured, it embeds the actual Hermes AIAgent for model requests and tool iteration. If Hermes is not configured yet, the dashboard chatbot still works through a real NVIDIA chat completion route. It does not send audio to an invented `/audio/transcriptions` URL. See [NVIDIA's API instructions](https://build.nvidia.com/nvidia/parakeet-1_1b-rnnt-multilingual-asr/api).
 
 ## Start the real website
 
@@ -22,10 +22,11 @@ Use Python 3.11–3.13. From the repository directory:
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install -r requirements.txt
-    python setup.py --hermes-path ../hermes-agent --install-skill
+    python setup.py
     python backend.py
 
-Open **http://127.0.0.1:8765**. The website now requires the configured Hermes and NVIDIA services; there is no demo runtime or simulated response path. On Windows, activate with `.venv\Scripts\activate`.
+Open **http://127.0.0.1:8765**. The website requires your NVIDIA key for chat; there is no demo runtime or simulated response path. On Windows, activate with `.venv\Scripts\activate`.
+
 
 Each HTML page contains its application CSS and JavaScript. Three.js and OrbitControls load from a pinned jsDelivr version, so first-page loading requires internet access. Serve through the gateway, not `file://`. This is not an offline-vendored frontend bundle.
 
@@ -41,18 +42,24 @@ Each HTML page contains its application CSS and JavaScript. Three.js and OrbitCo
        python -m pip install -e ../hermes-agent
        python -m pip install -r requirements.txt
 
-4. Configure credentials locally and install the skill:
+4. Configure credentials locally:
+
+       python setup.py
+
+   The hidden prompt asks for your NVIDIA API key. No secret is bundled. Existing `.env` files are preserved. This is enough for the dashboard text chatbot to use the configured NVIDIA language model.
+
+   To enable full Hermes tool-loop mode and install the JARVIS skill, run setup with the Hermes checkout:
 
        python setup.py --hermes-path ../hermes-agent --install-skill
 
-   The hidden prompt asks for your NVIDIA API key. No secret is bundled. Existing `.env` files and existing skills are preserved. The default recognizer is a separately deployed local Parakeet NIM at `localhost:50051`.
+   Existing skills are preserved. The default recognizer is a separately deployed local Parakeet NIM at `localhost:50051`.
 
    To use the hosted NVIDIA recognizer instead, run the setup command with `--hosted-asr` on first configuration. This selects the function ID documented by NVIDIA. Verify model/API availability in your NVIDIA account. Model access, service charges, and rate limits depend on that account.
 
 5. For local ASR, deploy the Parakeet RNNT model using [NVIDIA's GPU/NIM deployment instructions](https://docs.nvidia.com/nim/speech/latest/asr/deploy-asr-models/parakeet-rnnt.html). Select a streaming profile supported by your GPU. This server is a separate prerequisite; an ordinary CPU laptop is not assumed to host the 1.1B NIM. The gateway itself can run on a laptop and connect to a suitable ASR server. If you deploy a different Parakeet model or profile, set `RIVA_MODEL` and the endpoint accordingly.
 6. Start `python backend.py`, open the homepage, enter the dashboard, and wait for Ready. Select Listen to start default-microphone capture. Local TTS plays through the gateway machine's speakers. Use headphones for best results. The microphone is muted during TTS; this is half-duplex interaction, not acoustic echo cancellation or barge-in.
 
-Hermes's Python API was inspected at the pinned revision; upstream changes may require an adapter update. The default toolsets are `memory,session_search,skills`. Additional Hermes toolsets may be explicitly configured with `JARVIS_TOOLSETS`; normal Hermes approval behavior remains in force. The gateway does not bypass interactive tool approvals or silently grant arbitrary terminal/device access.
+Hermes's Python API was inspected at the pinned revision; upstream changes may require an adapter update. Without `HERMES_AGENT_PATH`, the dashboard runs in `nvidia-direct` mode: it can chat through the configured NVIDIA model, but it does not expose Hermes memory/session/tool execution. With `HERMES_AGENT_PATH`, the default toolsets are `memory,session_search,skills`. Additional Hermes toolsets may be explicitly configured with `JARVIS_TOOLSETS`; normal Hermes approval behavior remains in force. The gateway does not bypass interactive tool approvals or silently grant arbitrary terminal/device access.
 
 ## Application and gateway architecture
 
@@ -101,7 +108,8 @@ Runtime setup errors appear in the activity feed. A ready process does not prove
 
 Run `python -m pip install pytest httpx`, then `python -m pytest -q`.
 
-The included tests cover telemetry validation, deduplication, persistence, origin/host/token boundaries, body limits, queue rate limits, honest failure when the real runtime is not configured, and preservation of the Hermes tool-message contract with a test double. Python and embedded JavaScript syntax are also checked.
+The included tests cover telemetry validation, deduplication, persistence, origin/host/token boundaries, body limits, queue rate limits, direct NVIDIA chat mode wiring, honest failure when the NVIDIA runtime is not configured, and preservation of the Hermes tool-message contract with a test double. Python and embedded JavaScript syntax are also checked.
+
 
 Live NVIDIA inference, Hermes execution with real credentials, microphone capture, local speaker output, and semantic-model download were not executed in this environment. The browser could not access the loopback preview, so rendered desktop/mobile and WebGL interaction QA remain unverified. This is a complete authored implementation with explicit external prerequisites, not a claim of production certification or hardware-qualified end-to-end operation.
 

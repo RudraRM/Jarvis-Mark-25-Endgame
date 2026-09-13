@@ -3,7 +3,7 @@ import json
 import uuid
 from fastapi.testclient import TestClient
 import pytest
-from backend import create_app, Memory, Runtime, apply_telemetry
+from backend import create_app, DirectNvidiaChat, Memory, Runtime, apply_telemetry
 
 @pytest.fixture
 def client(tmp_path):
@@ -53,6 +53,31 @@ def test_restart_preserves_context_and_retrieval(tmp_path):
     assert store.get('history')[0]['content']=='Physics'
     assert store.retrieve('physics')[0]['body']['text']=='Prepare physics notes'
     store.close()
+
+def test_direct_nvidia_chat_uses_real_completion_shape():
+    class Message:
+        content='Ready, Sir.'
+    class Choice:
+        message=Message()
+    class Response:
+        choices=[Choice()]
+    class Completions:
+        def create(self, **kw):
+            assert kw['model']=='meta/llama-3.3-70b-instruct'
+            assert kw['messages'][0]['role']=='system'
+            assert kw['messages'][-1]['content']=='Hello'
+            return Response()
+    class Chat:
+        completions=Completions()
+    class Client:
+        chat=Chat()
+    agent=DirectNvidiaChat(Client(),'meta/llama-3.3-70b-instruct','System prompt')
+    result=agent.run_conversation(user_message='Hello',conversation_history=[
+        {'role':'tool','content':'hidden'},
+        {'role':'assistant','content':'Previous answer'},
+    ])
+    assert result['final_response']=='Ready, Sir.'
+    assert result['messages'][-1]['role']=='assistant'
 
 def test_actual_hermes_contract_preserves_tool_history(tmp_path):
     class Agent:

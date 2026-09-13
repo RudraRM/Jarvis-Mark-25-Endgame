@@ -45,6 +45,35 @@ class Message(BaseModel):
 class Toggle(BaseModel):
     enabled: bool
 
+class DirectNvidiaChat:
+    """Real NVIDIA chat fallback for machines that have not installed Hermes yet."""
+    def __init__(self, client, model, prompt):
+        self.client = client
+        self.model = model
+        self.prompt = prompt
+
+    def run_conversation(self, *, user_message, conversation_history):
+        messages = [{'role':'system','content':self.prompt}]
+        safe_history = []
+        for item in conversation_history[-24:]:
+            role = item.get('role')
+            content = item.get('content')
+            if role in ('user','assistant') and isinstance(content,str) and content.strip():
+                safe_history.append({'role':role,'content':content})
+        messages.extend(safe_history)
+        messages.append({'role':'user','content':user_message})
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=float(os.getenv('JARVIS_TEMPERATURE','0.4')),
+            max_tokens=int(os.getenv('JARVIS_MAX_TOKENS','900')),
+        )
+        answer = (response.choices[0].message.content or '').strip()
+        return {'final_response':answer,'messages':safe_history+[
+            {'role':'user','content':user_message},
+            {'role':'assistant','content':answer},
+        ]}
+
 class Memory:
     """One durable stream; vectors are local, raw audio is never persisted."""
     def __init__(self, path: Path):
@@ -311,6 +340,7 @@ class Runtime:
         self.status = 'starting'
         self.audio_status = 'muted'
         self.tts_status = 'off'
+        self.agent_mode = 'unconfigured'
         self.started = time.monotonic()
         self.jobs = asyncio.Queue(maxsize=16)
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix='hermes')
@@ -341,24 +371,33 @@ class Runtime:
 
     def boot(self):
         try:
-            path = Path(os.environ['HERMES_AGENT_PATH']).expanduser().resolve()
-            if not (path/'run_agent.py').is_file():
-                raise RuntimeError('HERMES_AGENT_PATH must contain run_agent.py')
-            sys.path.insert(0,str(path))
             from openai import OpenAI
-            from run_agent import AIAgent
             key = os.environ['NVIDIA_API_KEY']
             if not key:
                 raise RuntimeError('Set NVIDIA_API_KEY in .env')
             # Official OpenAI-compatible NVIDIA client; AIAgent owns tool iterations.
             self.client = OpenAI(api_key=key, base_url=os.getenv('JARVIS_LLM_BASE_URL','https://integrate.api.nvidia.com/v1'),
                                  timeout=60, max_retries=2)
-            self.agent = AIAgent(api_key=key, base_url=str(self.client.base_url),
-                model=os.getenv('JARVIS_MODEL','meta/llama-3.3-70b-instruct'),
-                enabled_toolsets=[t.strip() for t in os.getenv('JARVIS_TOOLSETS','memory,session_search,skills').split(',') if t.strip()],
-                max_iterations=12, run_budget_seconds=120, session_id=self.session_id,
-                ephemeral_system_prompt=(ROOT/'prompt.txt').read_text(), quiet_mode=True,
-                skip_memory=False, skip_background_review=True)
+            prompt = (ROOT/'prompt.txt').read_text()
+            model = os.getenv('JARVIS_MODEL','meta/llama-3.3-70b-instruct')
+            hermes_path = os.getenv('HERMES_AGENT_PATH','').strip()
+            if hermes_path:
+                path = Path(hermes_path).expanduser().resolve()
+                if not (path/'run_agent.py').is_file():
+                    raise RuntimeError('HERMES_AGENT_PATH must contain run_agent.py')
+                sys.path.insert(0,str(path))
+                from run_agent import AIAgent
+                self.agent = AIAgent(api_key=key, base_url=str(self.client.base_url),
+                    model=model,
+                    enabled_toolsets=[t.strip() for t in os.getenv('JARVIS_TOOLSETS','memory,session_search,skills').split(',') if t.strip()],
+                    max_iterations=12, run_budget_seconds=120, session_id=self.session_id,
+                    ephemeral_system_prompt=prompt, quiet_mode=True,
+                    skip_memory=False, skip_background_review=True)
+                self.agent_mode = 'hermes'
+            else:
+                self.agent = DirectNvidiaChat(self.client, model, prompt)
+                self.agent_mode = 'nvidia-direct'
+                self.memory.add('system',{'message':'Hermes checkout not configured; using direct NVIDIA chat mode'})
             try:
                 self.memory.enable_semantic(os.getenv('JARVIS_EMBED_MODEL','sentence-transformers/all-MiniLM-L6-v2'))
             except Exception as exc:
@@ -424,7 +463,7 @@ class Runtime:
             except queue.Empty:
                 break
         return dict(status=self.status, audio=self.audio_status, speaking=self.speaking.is_set(),
-                    tts=self.tts_status, memory=self.memory.mode, core=self.core,
+                    tts=self.tts_status, memory=self.memory.mode, agent_mode=self.agent_mode, core=self.core,
                     uptime=int(time.monotonic()-self.started), queue=self.jobs.qsize(),
                     audio_dropped=self.audio.dropped, telemetry_count=self.count,
                     events=self.memory.recent(30))
@@ -531,7 +570,7 @@ def create_app(data_dir=None):
         if not body.text.strip():
             raise HTTPException(422,'Message is empty')
         if not rt.agent or rt.status == 'configuration required':
-            raise HTTPException(503,'Hermes is unavailable. Configure the local runtime first.')
+            raise HTTPException(503,'AI runtime is unavailable. Configure NVIDIA_API_KEY first.')
         try:
             rt.jobs.put_nowait((body.text.strip(),'keyboard'))
         except asyncio.QueueFull:
