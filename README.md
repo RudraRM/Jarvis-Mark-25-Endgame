@@ -11,7 +11,7 @@ Read **[JARVIS_IMPLEMENTATION.md](JARVIS_IMPLEMENTATION.md)** for the comprehens
 - `backend.py`: FastAPI, real NVIDIA chat fallback, optional persistent Hermes AIAgent, bounded command queue, 16 kHz mono PCM microphone capture, Parakeet Riva streaming, and a separate local TTS process.
 - `prompt.txt`: stable identity, telemetry/memory context, and volatile runtime state assembly.
 - `skills/jarvis/SKILL.md`: installable Hermes operating skill.
-- SQLite WAL event history with local sentence-transformers embeddings, semantic retrieval, and an explicit lexical fallback. Hermes keeps its own memory and tool history too.
+- SQLite WAL event history with built-in lexical retrieval. Optional local sentence-transformers embeddings can enable semantic retrieval when configured. Hermes keeps its own memory and tool history too.
 
 **NVIDIA API correction:** the documented Parakeet 1.1B hosted interface is Riva gRPC, not an OpenAI audio-transcription endpoint. The backend uses `from openai import OpenAI` for the NVIDIA-compatible LLM client configuration. If `HERMES_AGENT_PATH` is configured, it embeds the actual Hermes AIAgent for model requests and tool iteration. If Hermes is not configured yet, the dashboard chatbot still works through a real NVIDIA chat completion route. It does not send audio to an invented `/audio/transcriptions` URL. See [NVIDIA's API instructions](https://build.nvidia.com/nvidia/parakeet-1_1b-rnnt-multilingual-asr/api).
 
@@ -69,7 +69,7 @@ The microphone worker reads 1,600 frames per chunk: 100 ms of 16,000 Hz mono sig
 
 Validated `/telemetry` events update the current context immediately and are persisted transactionally with core state. Gestures do not initiate an expensive LLM completion for every pointer pixel. The next queued operator message includes current telemetry, recent events, relevant past events, input source, session ID, and timestamp. Accepted UI events are durable; the browser coalesces intermediate movement when delivery is busy. It reports failed delivery rather than promising zero-loss real-time networking.
 
-`Memory.retrieve` embeds pending historical records in batches using a local sentence-transformers model and ranks records by normalized vector similarity at read time. A cutoff prevents incoming telemetry from extending one indexing pass indefinitely. All accepted events remain stored. This simple exact scan suits personal histories; indexing and retrieval become slower as history grows. If embeddings cannot load, the UI says `lexical`. Finite retrieval and finite model context are not perfect, unlimited recall.
+`Memory.retrieve` uses lexical ranking by default, so no extra embedding model is required for the chatbot to run. If `JARVIS_EMBED_MODEL` is set, it embeds pending historical records in batches using a local sentence-transformers model and ranks records by normalized vector similarity at read time. If that optional semantic setup fails, the gateway stays in lexical mode and records a system note instead of an error. Finite retrieval and finite model context are not perfect, unlimited recall.
 
 Only the final conversational reply is passed to pyttsx3. A separate process owns the TTS engine; failures are visible. A British voice is selected when installed, otherwise the system voice is used. Set `JARVIS_TTS_VOICE` to a matching installed name/ID to select a voice explicitly.
 

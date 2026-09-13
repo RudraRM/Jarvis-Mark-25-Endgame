@@ -216,7 +216,7 @@ RIVA_FUNCTION_ID=
 RIVA_LANGUAGE=en-US
 RIVA_MODEL=
 # Downloaded to the local model cache on first use; set to an existing local path for offline use.
-JARVIS_EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
+JARVIS_EMBED_MODEL=
 JARVIS_TTS_VOICE=
 JARVIS_TTS_RATE=175
 JARVIS_SOURCE_2
@@ -615,9 +615,11 @@ class Runtime:
                 ephemeral_system_prompt=(ROOT/'prompt.txt').read_text(), quiet_mode=True,
                 skip_memory=False, skip_background_review=True)
             try:
-                self.memory.enable_semantic(os.getenv('JARVIS_EMBED_MODEL','sentence-transformers/all-MiniLM-L6-v2'))
+                embed_model = os.getenv('JARVIS_EMBED_MODEL','').strip()
+                if embed_model:
+                    self.memory.enable_semantic(embed_model)
             except Exception as exc:
-                self.memory.add('error',{'message':'Semantic retrieval unavailable; using lexical retrieval','type':type(exc).__name__})
+                self.memory.add('system',{'message':'Semantic retrieval disabled; using lexical retrieval','type':type(exc).__name__})
             self.status = 'ready'
             ctx = mp.get_context('spawn')
             self.tts = ctx.Process(target=tts_process, args=(self.tts_queue,self.tts_events,self.speaking,

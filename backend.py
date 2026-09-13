@@ -425,10 +425,12 @@ class Runtime:
                 self.agent = DirectNvidiaChat(self.client, model, prompt)
                 self.agent_mode = 'nvidia-direct'
                 self.memory.add('system',{'message':'Hermes checkout not configured; using direct NVIDIA chat mode'})
-            try:
-                self.memory.enable_semantic(os.getenv('JARVIS_EMBED_MODEL','sentence-transformers/all-MiniLM-L6-v2'))
-            except Exception as exc:
-                self.memory.add('error',{'message':'Semantic retrieval unavailable; using lexical retrieval','type':type(exc).__name__})
+            embed_model = os.getenv('JARVIS_EMBED_MODEL','').strip()
+            if embed_model:
+                try:
+                    self.memory.enable_semantic(embed_model)
+                except Exception as exc:
+                    self.memory.add('system',{'message':'Semantic retrieval disabled; using lexical retrieval','type':type(exc).__name__})
             self.status = 'ready'
             ctx = mp.get_context('spawn')
             self.tts = ctx.Process(target=tts_process, args=(self.tts_queue,self.tts_events,self.speaking,
@@ -517,7 +519,7 @@ class Runtime:
         await asyncio.to_thread(self.pool.shutdown,True,cancel_futures=True)
         if self.agent and hasattr(self.agent,'close'):
             self.agent.close()
-        if self.client:
+        if self.client and hasattr(self.client,'close'):
             self.client.close()
         self.memory.close()
 

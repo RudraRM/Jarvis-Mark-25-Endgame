@@ -85,6 +85,25 @@ def test_direct_nvidia_chat_uses_real_completion_shape():
     assert result['final_response']=='Ready, Sir.'
     assert result['messages'][-1]['role']=='assistant'
 
+def test_empty_embed_model_does_not_record_semantic_error(tmp_path, monkeypatch):
+    class Client:
+        chat = object()
+        base_url = 'https://integrate.api.nvidia.com/v1'
+    class OpenAI:
+        def __init__(self, **kw):
+            self.chat = Client.chat
+            self.base_url = Client.base_url
+    monkeypatch.setenv('NVIDIA_API_KEY','test-key')
+    monkeypatch.setenv('JARVIS_EMBED_MODEL','')
+    monkeypatch.setitem(__import__('sys').modules, 'openai', type('OpenAIModule', (), {'OpenAI': OpenAI}))
+    rt = Runtime(tmp_path)
+    rt.boot()
+    events = rt.memory.recent(10)
+    assert rt.status == 'ready'
+    assert rt.memory.mode == 'lexical'
+    assert not any(event['kind']=='error' and 'Semantic retrieval' in event['body'].get('message','') for event in events)
+    asyncio.run(rt.close())
+
 def test_message_endpoint_queues_and_worker_records_reply(client):
     class Agent:
         def run_conversation(self,**kw):
