@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import uuid
 from fastapi.testclient import TestClient
 import pytest
@@ -83,6 +84,27 @@ def test_direct_nvidia_chat_uses_real_completion_shape():
     ])
     assert result['final_response']=='Ready, Sir.'
     assert result['messages'][-1]['role']=='assistant'
+
+def test_message_endpoint_queues_and_worker_records_reply(client):
+    class Agent:
+        def run_conversation(self,**kw):
+            return {'final_response':'Ready, Sir.','messages':[
+                {'role':'user','content':kw['user_message']},
+                {'role':'assistant','content':'Ready, Sir.'}]}
+    rt = client.app.state.runtime
+    rt.agent = Agent()
+    rt.status = 'ready'
+    response = client.post('/message',json={'text':'Hello'})
+    assert response.status_code == 202
+    deadline = time.time() + 2
+    events = []
+    while time.time() < deadline:
+        events = client.get('/state').json()['events']
+        if any(event['kind']=='assistant' for event in events):
+            break
+        time.sleep(.05)
+    assert any(event['kind']=='queued' and event['body']['text']=='Hello' for event in events)
+    assert any(event['kind']=='assistant' and event['body']['text']=='Ready, Sir.' for event in events)
 
 def test_actual_hermes_contract_preserves_tool_history(tmp_path):
     class Agent:

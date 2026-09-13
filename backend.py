@@ -376,6 +376,8 @@ class Runtime:
         self.audio = Audio(self)
         self.loop = None
         self.count = 0
+        self.job_count = 0
+        self.active_job = None
         self.closed = False
 
     def post_event(self, kind, body):
@@ -388,6 +390,7 @@ class Runtime:
 
     def accept_audio(self, text):
         self.memory.add('transcript', {'text':text})
+        self.memory.add('queued', {'text':text,'source':'microphone'})
         try:
             self.jobs.put_nowait((text,'microphone'))
         except asyncio.QueueFull:
@@ -464,8 +467,12 @@ class Runtime:
         await self.loop.run_in_executor(self.pool,self.boot)
         while True:
             text,source = await self.jobs.get()
+            self.job_count += 1
+            job_id = self.job_count
+            self.active_job = {'id':job_id,'source':source,'started_at':utc()}
             try:
                 self.status = 'thinking'
+                self.memory.add('thinking',{'message':'JARVIS is processing the request','job_id':job_id,'source':source})
                 answer = await self.loop.run_in_executor(self.pool,self.turn,text,source)
                 if self.tts and self.tts.is_alive():
                     try:
@@ -481,6 +488,7 @@ class Runtime:
                 self.memory.add('error',{'message':'Turn failed: '+message})
                 LOG.exception('Turn failed')
             finally:
+                self.active_job = None
                 self.jobs.task_done()
 
     def view(self):
@@ -491,7 +499,7 @@ class Runtime:
                 break
         return dict(status=self.status, audio=self.audio_status, speaking=self.speaking.is_set(),
                     tts=self.tts_status, memory=self.memory.mode, agent_mode=self.agent_mode, core=self.core,
-                    uptime=int(time.monotonic()-self.started), queue=self.jobs.qsize(),
+                    uptime=int(time.monotonic()-self.started), queue=self.jobs.qsize(), active_job=self.active_job,
                     audio_dropped=self.audio.dropped, telemetry_count=self.count,
                     events=self.memory.recent(30))
 
@@ -600,7 +608,9 @@ def create_app(data_dir=None):
         if not rt.agent or rt.status == 'configuration required':
             raise HTTPException(503,'AI runtime is unavailable. Configure NVIDIA_API_KEY first.')
         try:
-            rt.jobs.put_nowait((body.text.strip(),'keyboard'))
+            text = body.text.strip()
+            rt.memory.add('queued', {'text':text,'source':'keyboard'})
+            rt.jobs.put_nowait((text,'keyboard'))
         except asyncio.QueueFull:
             raise HTTPException(429,'Command queue full')
         return {'queued':True}

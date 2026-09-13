@@ -110,7 +110,7 @@ $('rotateLeft').onclick=()=>visual?.rotate(-.2);
 $('rotateRight').onclick=()=>visual?.rotate(.2);
 $('reset').onclick=()=>{visual?.reset();tell('Camera reset. Stored context is unchanged.');};
 document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>emit({action:b.dataset.action}));
-$('commandForm').onsubmit=async e=>{e.preventDefault();const text=$('command').value.trim();if(!text)return;$('send').disabled=true;try{await post('/message',{text});$('command').value='';tell('Message queued. JARVIS is considering your request.');}catch(err){tell(err.message);}finally{$('send').disabled=!runtimeReady;}};
+$('commandForm').onsubmit=async e=>{e.preventDefault();const text=$('command').value.trim();if(!text)return;$('send').disabled=true;$('send').textContent='Sending…';try{await post('/message',{text});$('command').value='';tell('Message queued. JARVIS is considering your request.');}catch(err){tell(err.message);}finally{$('send').textContent='Send ↗';$('send').disabled=!runtimeReady;}};
 $('listen').onclick=async()=>{try{await post('/audio',{enabled:!listening});listening=!listening;$('listen').textContent=listening?'◉ Mute':'◉ Listen';tell(listening?'Microphone enabled on the gateway machine.':'Microphone muted.');}catch(e){tell(e.message);}};
 const duration=s=>[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':');
 function render(state){
@@ -122,6 +122,7 @@ function render(state){
  $('layer').textContent=String(state.core.layer).padStart(2,'0');$('nodeReadout').textContent=state.core.node===null?'—':String(state.core.node).padStart(4,'0');$('focus').textContent=state.core.focus;
  $('dropped').textContent=state.audio_dropped;$('uptime').textContent=duration(state.uptime);$('inputSource').textContent=listening?'Microphone':'Keyboard';$('memoryMode').textContent=state.memory;$('gatewayStatus').textContent='Connected';
  $('listen').disabled=!runtimeReady;$('send').disabled=!runtimeReady;
+ if(state.status==='thinking')tell('JARVIS is processing your request. Watch the activity feed for the reply.');
  if(state.audio==='muted'||state.audio.includes('unavailable')){listening=false;$('listen').textContent='◉ Listen';}
  const fingerprint=JSON.stringify(state.events.map(e=>e.id));if(fingerprint!==lastEvents){lastEvents=fingerprint;const nearBottom=$('feed').scrollHeight-$('feed').scrollTop-$('feed').clientHeight<50;$('feed').replaceChildren();
   if(!state.events.length){const p=document.createElement('p');p.className='empty';p.textContent='No events yet. Rotate the core to begin.';$('feed').append(p);}
